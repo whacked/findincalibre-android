@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Find in Calibre</string>
+    <string name="no_books">Nothing found</string>
+    <string name="menu_find">Find</string>
+    <string name="title">Title</string>
+    <string name="author">Author</string>
+    <string name="confirm">Confirm</string>
+        
+</resources>
