@@ -1,0 +1,40 @@
+
+* Find pdf in Calibre library and launch pdf viewer
+
+It expects that you have your entire Calibre Library in your sd card (e.g., synced via [[https://market.android.com/details?id%3Dorg.swiftp][swiftp]]). That is, it is hard-coded to look for =/sdcard/Calibre Library/metadata.db= (actually it's not: the current working set has the sd card location hardcoded to =/mnt/sdcard/ext_sd= which is probably a device-specific quirk; =Environment.getExternalStorageDirectory().toString()= is commented out above it)
+
+Then it allows you to search and pick the matching item, which gets opened in your pdf viewer.
+
+Due to the hack from impatience (see below), *the search function allows you to send arbitrary queries to your database*. But it does the job for me now. If you don't know what this means, feel free to drop me a line if you don't want it to destroy your database.
+
+* dev notes
+
+Essentially a rehashed version of notepad tutorial v3. It really doesn't need the extra view.
+
+Originally this was written in [[http://www.mirah.org/][mirah]] but debugging got extremely tedious and the function scope was really bizarre, so did a quick rewrite, so much easier!
+
+** mirah version and stupid SQL_FILTER hack
+
+The dumb =SQL_FILTER= stuff was from the mirah version; somehow if I had a class method, say =findInDb(arg: ContentValues)= it keeps telling me "cannot find instance" or such. There's also something about =findInDb= being invisible to other class methods (in the same class) if set up like so
+
+#+begin_src ruby
+class DbAdapter
+  ...
+  def findInDb(cv: ContentValues): Cursor
+    # do something with cv... but it says "cannot find instance" or whereabouts
+    return @db.rawQuery(..., array_for_prepared_statement)
+  end
+
+  def findBook(title: String, author: String): Cursor
+    cv = ContentValues.new
+    cv.put("title", title)
+    return findInDb(cv)
+  end
+end
+
+#+end_src
+
+Generally with this kind of setup, the compiler complains at =findBook= for calling =findInDb=. Of course, if you duplicate the =rawQuery= code in all functions that call =findInDb=, you're fine, which is expected. This might be a problem for a macro, which I didn't check out, because that's clearly doing it wrong.
+
+Setting =SQL_FILTER= is the resulting ugly hack. It compiled, and worked on 2.2, but failed on 2.3. At the time of this writing, the various mirah projects and examples floating out there, old and new, aren't guaranteed to work as described. I'm only able to =rake install= anything that's declared targeting 2.1; I've had further trouble after updating avd with ant saying =build.xml= is obsolete (and ant working fine, but producing nothing -- since it's mirah anyway)
+
